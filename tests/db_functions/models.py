@@ -55,3 +55,7 @@ class IntegerModel(models.Model):
 class FloatModel(models.Model):
     f1 = models.FloatField(null=True, blank=True)
     f2 = models.FloatField(null=True, blank=True)
+
+
+class UserPreference(models.Model):
+    settings = models.JSONField()

@@ -1582,6 +1582,8 @@ class SQLCompiler:
         else:
             cursor = self.connection.cursor()
         try:
+            print("sql", sql)
+            print("params", params)
             cursor.execute(sql, params)
         except Exception:
             # Might fail for server-side cursors (e.g. connection closed)

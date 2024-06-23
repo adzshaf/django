@@ -1,7 +1,7 @@
 """
 Tests for built in Function expressions.
 """
-
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
 
@@ -58,4 +58,4 @@ class FloatModel(models.Model):
 
 
 class UserPreference(models.Model):
-    settings = models.JSONField()
+    settings = models.JSONField(encoder=DjangoJSONEncoder)

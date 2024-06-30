@@ -5,7 +5,6 @@ from ..models import UserPreference
 
 
 class JSONSetTests(TestCase):
-    # not yet: null, array object
     def test_single_set(self):
         UserPreference.objects.create(settings={"theme": "dark"})
         obj = UserPreference.objects.annotate(
@@ -47,14 +46,6 @@ class JSONSetTests(TestCase):
             settings_updated=JSONSet("settings", **{"font.size": 10})
         ).first()
         self.assertEqual(obj.settings_updated, {"font.size": 10})
-
-    # def test_set_escape_double_quote(self): # may not be supported
-    #     # SELECT JSON_SET("settings", '$.font"size', 10) FROM user_preferences WHERE id = 2;
-    #     # escape
-    #     UserPreference.objects.create(settings={"font\"size": 20})
-    #     obj = UserPreference.objects.annotate(
-    #         settings_updated=JSONSet('settings', **{"font\"size": 10})).first()
-    #     self.assertEqual(obj.settings_updated, {"font\"size": 10})
 
     def test_nested_multiple_set(self):
         UserPreference.objects.create(settings={"font": {"size": 20, "name": "Arial"}})
@@ -147,12 +138,3 @@ class JSONSetTests(TestCase):
             settings_updated=JSONSet("settings", font__size=None)
         ).first()
         self.assertEqual(obj.settings_updated, {"font": {"size": None}})
-
-
-# $."a fish"."a bird"
-#
-# $."font.size" ->
-#
-# $."font"."size"
-#
-# $."font\"size"

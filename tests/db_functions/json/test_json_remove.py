@@ -46,8 +46,6 @@ class JSONRemoveTests(TestCase):
             settings={"font": {"size": 20, "color": "red"}, "theme": "dark"}
         )
         obj = UserPreference.objects.annotate(
-            settings_updated=JSONRemove(
-                JSONRemove("settings", 'font__color'), 'theme'
-            )
+            settings_updated=JSONRemove(JSONRemove("settings", "font__color"), "theme")
         ).first()
         self.assertEqual(obj.settings_updated, {"font": {"size": 20}})

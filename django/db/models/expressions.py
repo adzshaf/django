@@ -1090,12 +1090,8 @@ class Func(SQLiteNumericMixin, Expression):
         sql_parts = []
         params = []
         for arg in self.source_expressions:
-            print("arggg", arg)
             try:
-                print("sini kah")
                 arg_sql, arg_params = compiler.compile(arg)
-                print("arg_sql", arg_sql)
-                print("hohoho", arg_params)
             except EmptyResultSet:
                 empty_result_set_value = getattr(
                     arg, "empty_result_set_value", NotImplemented
@@ -1118,9 +1114,6 @@ class Func(SQLiteNumericMixin, Expression):
         template = template or data.get("template", self.template)
         arg_joiner = arg_joiner or data.get("arg_joiner", self.arg_joiner)
         data["expressions"] = data["field"] = arg_joiner.join(sql_parts)
-        print("cuuuy", template)
-        print("dataa", data)
-        print("hhhhhmm", template % data)
         return template % data, params
 
     def copy(self):

@@ -186,3 +186,27 @@ class CastTests(TestCase):
             ).get(),
             "1",
         )
+
+    @unittest.skipUnless(connection.vendor == "sqlite", "SQLite test")
+    def test_cast_to_json_field_on_sqlite(self):
+        with CaptureQueriesContext(connection) as captured_queries:
+            list(
+                Author.objects.annotate(
+                    cast_json=Cast(models.Value('{"age": 20}'), models.JSONField())
+                )
+            )
+        self.assertIn(
+            "JSON('{\"age\": 20}')",
+            captured_queries[0]["sql"],
+        )
+
+    def test_cast_to_json_field(self):
+        """
+        make different test case to sqlite, try to copy
+        test_expression_wrapped_with_parentheses_on_postgresql
+        on sqlite
+        """
+        json_value = Author.objects.annotate(
+            cast_json=Cast(models.Value('{"age": 20}'), models.JSONField())
+        )
+        self.assertEqual(json_value.get().cast_json, {"age": 20})

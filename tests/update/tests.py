@@ -17,6 +17,7 @@ from .models import (
     RelatedPoint,
     UniqueNumber,
     UniqueNumberChild,
+    UserPreference
 )
 
 
@@ -156,6 +157,11 @@ class AdvancedTests(TestCase):
         bar_qs.update(foo=b_foo)
         self.assertEqual(bar_qs[0].foo_id, b_foo.target)
 
+    def test_foo__bar(self):
+        a_foo = Foo.objects.create(target="aaa")
+        bar = Bar.objects.create(foo=a_foo)
+        Bar.objects.update(foo__target="bbb")
+
     def test_update_m2m_field(self):
         msg = (
             "Cannot update model field "
@@ -224,6 +230,43 @@ class AdvancedTests(TestCase):
                         RelatedPoint.objects.annotate(
                             new_name=annotation,
                         ).update(name=F("new_name"))
+
+    def test_update_json(self):
+        UserPreference.objects.create(settings={"theme": "dark"})
+        user_preference = UserPreference.objects.filter(id=1)
+        resp = user_preference.update(settings={"theme": "light"})
+        self.assertEqual(resp, 1)
+        self.assertEqual(user_preference.first().settings, {"theme": "light"})
+
+    def test_update_json_key_transform(self):
+        UserPreference.objects.create(settings={"theme": {"color": "black", "font": "Arial"}})
+        user_preference = UserPreference.objects.filter(id=1)
+        resp = user_preference.update(settings__theme__color="white")
+        self.assertEqual(resp, 1)
+        self.assertEqual(user_preference.first().settings, {"theme": {"color": "white", "font": "Arial"}})
+
+    def test_update_json_multiple_key_transform(self):
+        UserPreference.objects.create(settings={"theme": {"color": "black", "font": "Arial"}})
+        user_preference = UserPreference.objects.filter(id=1)
+        resp = user_preference.update(settings__theme__color="white",
+                                      settings__theme__font="Comic Sans")
+        """
+        UPDATE user_preference
+        SET settings = JSON_SET(JSON_SET(settings, "$.theme.color", "white"), "$.theme.font", "Comic Sans")
+
+        UPDATE user_preference
+        SET settings = JSON_SET(settings, "$.theme.color", "white"),
+        settings = JSON_SET(settings, "$.theme.font", "Comic Sans")
+        """
+        self.assertEqual(resp, 1)
+        self.assertEqual(user_preference.first().settings, {"theme": {"color": "white", "font": "Comic Sans"}})
+
+    def test_update_json_remove(self):
+        UserPreference.objects.create(settings={"theme": {"color": "black", "font": "Arial"}})
+        user_preference = UserPreference.objects.filter(id=1)
+        resp = user_preference.update(settings__theme__color=None)
+        self.assertEqual(resp, 1)
+        self.assertEqual(user_preference.first().settings, {"theme": {"font": "Arial"}})
 
     def test_update_ordered_by_m2m_aggregation_annotation(self):
         msg = (

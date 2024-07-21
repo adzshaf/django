@@ -659,6 +659,7 @@ class Options:
         try:
             # In order to avoid premature loading of the relation tree
             # (expensive) we prefer checking if the field is a forward field.
+            print("hmmmm???", self._forward_fields_map)
             return self._forward_fields_map[field_name]
         except KeyError:
             # If the app registry is not ready, reverse fields are
@@ -673,6 +674,7 @@ class Options:
         try:
             # Retrieve field instance by name from cached or just-computed
             # field map.
+            print("hmmmm", self.fields_map)
             return self.fields_map[field_name]
         except KeyError:
             raise FieldDoesNotExist(

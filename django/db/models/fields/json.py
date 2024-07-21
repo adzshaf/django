@@ -116,6 +116,12 @@ class JSONField(CheckFieldDefaultMixin, Field):
         transform = super().get_transform(name)
         if transform:
             return transform
+        """
+        class TempKeyTransform(KeyTransform):
+            lookup_name = name
+
+        return TempKeyTransform
+        """
         return KeyTransformFactory(name)
 
     def validate(self, value, model_instance):
@@ -335,17 +341,22 @@ JSONField.register_lookup(JSONIContains)
 class KeyTransform(Transform):
     postgres_operator = "->"
     postgres_nested_operator = "#>"
+    supports_update = True
 
     def __init__(self, key_name, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.key_name = str(key_name)
 
-    def preprocess_lhs(self, compiler, connection):
+    def unwrap_transforms(self):
         key_transforms = [self.key_name]
         previous = self.lhs
         while isinstance(previous, KeyTransform):
             key_transforms.insert(0, previous.key_name)
             previous = previous.lhs
+        return previous, key_transforms
+
+    def preprocess_lhs(self, compiler, connection):
+        previous, key_transforms = self.unwrap_transforms()
         lhs, params = compiler.compile(previous)
         if connection.vendor == "oracle":
             # Escape string-formatting.
@@ -389,6 +400,24 @@ class KeyTransform(Transform):
             "(CASE WHEN JSON_TYPE(%s, %%s) IN (%s) "
             "THEN JSON_TYPE(%s, %%s) ELSE JSON_EXTRACT(%s, %%s) END)"
         ) % (lhs, datatype_values, lhs, lhs), (tuple(params) + (json_path,)) * 3
+
+    def get_update_expression(self, value, lhs=None):
+        """
+        Returns JSONSet with the correct parameters.
+        """
+        from ..functions.json import JSONSet, JSONRemove
+        field, key_transforms = self.unwrap_transforms()
+
+        if lhs is None:
+            lhs = field
+
+        if value is None:
+            return JSONRemove(lhs, LOOKUP_SEP.join(key_transforms))
+
+        print("hiksss", value)
+        print("lhs", lhs)
+        print("key_transforms", key_transforms)
+        return JSONSet(lhs, **{LOOKUP_SEP.join(key_transforms): value})
 
 
 class KeyTextTransform(KeyTransform):
@@ -619,6 +648,8 @@ KeyTransform.register_lookup(KeyTransformGte)
 
 
 class KeyTransformFactory:
+    supports_update = True
+
     def __init__(self, key_name):
         self.key_name = key_name
 

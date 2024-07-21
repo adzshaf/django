@@ -201,6 +201,7 @@ class Transform(RegisterLookupMixin, Func):
 
     bilateral = False
     arity = 1
+    supports_update = False
 
     @property
     def lhs(self):
@@ -214,6 +215,9 @@ class Transform(RegisterLookupMixin, Func):
         if self.bilateral:
             bilateral_transforms.append(self.__class__)
         return bilateral_transforms
+
+    def get_update_expression(self, value):
+        raise NotImplementedError("get_update_expression is not supported in this transform")
 
 
 class BuiltinLookup(Lookup):

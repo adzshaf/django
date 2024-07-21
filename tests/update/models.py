@@ -2,7 +2,7 @@
 Tests for the update() queryset method that allows in-place, multi-object
 updates.
 """
-
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
 
@@ -51,3 +51,7 @@ class UniqueNumber(models.Model):
 
 class UniqueNumberChild(UniqueNumber):
     pass
+
+class UserPreference(models.Model):
+    id = models.IntegerField(primary_key=True)
+    settings = models.JSONField(encoder=DjangoJSONEncoder)

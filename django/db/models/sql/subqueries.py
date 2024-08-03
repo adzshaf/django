@@ -4,8 +4,6 @@ Query subclasses which provide extra functionality beyond simple data retrieval.
 
 from django.core.exceptions import FieldError
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.functions.json import JSONSet
-from django.db.models.lookups import Transform
 from django.db.models.sql.constants import CURSOR, GET_ITERATOR_CHUNK_SIZE, NO_RESULTS
 from django.db.models.sql.query import Query
 
@@ -105,29 +103,14 @@ class UpdateQuery(Query):
                         if transform_class.supports_update:
                             lhs = transform_class(lhs)
 
-                # fix it
-                # lhs.get_update_expression(lhs.get_update_expression(val))
-
-                print("field_dict")
-                print(field_dict)
-                print(field)
-                """
-                user_preference.update(settings__theme__color="white",
-                                      settings__theme__font="Comic Sans")
-                """
-
                 if field_dict.get(field):
                     value = field_dict.get(field)[-1]
-                    print("heeyyy", value)
-                    print("heeyyy2", lhs.get_update_expression(value))
                     field_dict[field] = (field, model, lhs.get_update_expression(val, value))
                 else:
                     field_dict[field] = (field, model, lhs.get_update_expression(val))
 
-                # values_seq.append((field, model, lhs.get_update_expression(val)))
                 continue
 
-            print("lhsssss", lhs)
             if not direct or (field.is_relation and field.many_to_many):
                 raise FieldError(
                     "Cannot update model field %r (only non-relations and "
@@ -136,8 +119,8 @@ class UpdateQuery(Query):
             if model is not self.get_meta().concrete_model:
                 self.add_related_update(model, field, val)
                 continue
-            # values_seq.append((field, model, val))
             field_dict[field] = (field, model, val)
+
         return self.add_update_fields(field_dict.values())
 
     def add_update_fields(self, values_seq):
@@ -150,15 +133,9 @@ class UpdateQuery(Query):
             # Omit generated fields.
             if field.generated:
                 continue
-            # if isinstance(val, JSONSet):
-            #     print("wokee")
-            #     print(val.fields)
-            #     val.fields['theme__font'] = val.fields['theme__font'].resolve_expression(self, allow_joins=False, for_save=True)
             if hasattr(val, "resolve_expression"):
                 # Resolve expressions here so that annotations are no longer needed
                 val = val.resolve_expression(self, allow_joins=False, for_save=True)
-                print("cuu")
-                print(val)
             self.values.append((field, model, val))
 
     def add_related_update(self, model, field, value):

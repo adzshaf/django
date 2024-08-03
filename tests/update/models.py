@@ -53,5 +53,5 @@ class UniqueNumberChild(UniqueNumber):
     pass
 
 class UserPreference(models.Model):
-    id = models.IntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     settings = models.JSONField(encoder=DjangoJSONEncoder)

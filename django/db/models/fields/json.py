@@ -12,7 +12,6 @@ from django.db.models.lookups import (
     Transform,
 )
 from django.utils.translation import gettext_lazy as _
-
 from . import Field
 from .mixins import CheckFieldDefaultMixin
 
@@ -402,9 +401,6 @@ class KeyTransform(Transform):
         ) % (lhs, datatype_values, lhs, lhs), (tuple(params) + (json_path,)) * 3
 
     def get_update_expression(self, value, lhs=None):
-        """
-        Returns JSONSet with the correct parameters.
-        """
         from ..functions.json import JSONSet, JSONRemove
         field, key_transforms = self.unwrap_transforms()
 
@@ -414,9 +410,6 @@ class KeyTransform(Transform):
         if value is None:
             return JSONRemove(lhs, LOOKUP_SEP.join(key_transforms))
 
-        print("hiksss", value)
-        print("lhs", lhs)
-        print("key_transforms", key_transforms)
         return JSONSet(lhs, **{LOOKUP_SEP.join(key_transforms): value})
 
 

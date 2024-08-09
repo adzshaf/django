@@ -84,12 +84,9 @@ class UpdateQuery(Query):
         query. This is the entry point for the public update() method on
         querysets.
         """
-        values_seq = []
         field_dict = dict()
         for name, val in values.items():
             name, *rest = name.split(LOOKUP_SEP)
-            print("hohoho", name)
-            print("hihihi", val)
             field = self.get_meta().get_field(name)
             direct = (
                 not (field.auto_created and not field.concrete) or not field.concrete
@@ -105,7 +102,11 @@ class UpdateQuery(Query):
 
                 if field_dict.get(field):
                     value = field_dict.get(field)[-1]
-                    field_dict[field] = (field, model, lhs.get_update_expression(val, value))
+                    field_dict[field] = (
+                        field,
+                        model,
+                        lhs.get_update_expression(val, value),
+                    )
                 else:
                     field_dict[field] = (field, model, lhs.get_update_expression(val))
 

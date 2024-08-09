@@ -7,11 +7,11 @@ from django.db.models.functions import Cast
 class JSONSet(Func):
     output_field = JSONField()
 
-    def __init__(self, field_name, **fields):
+    def __init__(self, expression, **fields):
         if not fields:
-            raise TypeError("JSONSet requires fields parameter")
+            raise TypeError("JSONSet requires at least one key-value pair to be set")
         self.fields = fields
-        super().__init__(field_name)
+        super().__init__(expression)
 
     def as_sql(
         self,
@@ -31,6 +31,8 @@ class JSONSet(Func):
             new_source_expression.extend(
                 (
                     Value(key_paths_join),
+                    # Use Value to serialize the data to string,
+                    # then use Cast to ensure the string is treated as JSON.
                     Cast(
                         Value(value, output_field=self.output_field),
                         output_field=self.output_field,
@@ -54,6 +56,8 @@ class JSONSet(Func):
         key, value = all_items[0]
         rest = all_items[1:]
 
+        # JSONB_SET does not support arbitrary number of arguments,
+        # so convert multiple updates into recursive calls.
         if rest:
             copy.fields = {key: value}
             return JSONSet(copy, **dict(rest)).as_postgresql(
@@ -81,6 +85,8 @@ class JSONSet(Func):
         key, value = all_items[0]
         rest = all_items[1:]
 
+        # JSON_TRANSFORM does not support arbitrary number of arguments,
+        # so convert multiple updates into recursive calls.
         if rest:
             copy.fields = {key: value}
             return JSONSet(copy, **dict(rest)).as_oracle(
@@ -97,10 +103,9 @@ class JSONSet(Func):
 
         class ArgJoiner:
             def join(self, args):
-                if len(args) < 2:
-                    return ", ".join(args)
-                else:
-                    return f"{args[0]}, SET '{key_paths_join}' = {args[-1]} FORMAT JSON"
+                # Interpolate the JSON path directly to the query string, because
+                # Oracle does not support passing the JSON path using parameter binding.
+                return f"{args[0]}, SET '{key_paths_join}' = {args[-1]} FORMAT JSON"
 
         return super(JSONSet, copy).as_sql(
             compiler,
@@ -112,11 +117,11 @@ class JSONSet(Func):
 
 
 class JSONRemove(Func):
-    def __init__(self, field_name, *paths):
+    def __init__(self, expression, *paths):
         if not paths:
-            raise TypeError("JSONRemove requires paths parameter")
+            raise TypeError("JSONRemove requires at least one path to remove")
         self.paths = paths
-        super().__init__(field_name)
+        super().__init__(expression)
 
     def as_sql(
         self,

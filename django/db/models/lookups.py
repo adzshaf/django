@@ -217,7 +217,9 @@ class Transform(RegisterLookupMixin, Func):
         return bilateral_transforms
 
     def get_update_expression(self, value):
-        raise NotImplementedError("get_update_expression is not supported in this transform")
+        raise NotImplementedError(
+            "get_update_expression is not supported in this transform"
+        )
 
 
 class BuiltinLookup(Lookup):

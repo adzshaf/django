@@ -1,65 +1,77 @@
 from django.db.models.functions.json import JSONSet
-from django.test import TestCase
+from django.test import TestCase, skipUnlessDBFeature
 
 from ..models import UserPreference
 
 
+@skipUnlessDBFeature("supports_json_field")
 class JSONSetTests(TestCase):
     def test_set_single_key(self):
-        UserPreference.objects.create(settings={"theme": "dark"})
-        obj = UserPreference.objects.annotate(
-            settings_updated=JSONSet("settings", theme="light")
-        ).first()
-        self.assertEqual(obj.settings_updated, {"theme": "light"})
+        user_preference = UserPreference.objects.create(
+            settings={"theme": "dark", "notifications": True}
+        )
+        UserPreference.objects.update(settings=JSONSet("settings", theme="light"))
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        self.assertEqual(
+            user_preference.settings, {"theme": "light", "notifications": True}
+        )
 
     def test_set_multiple_keys(self):
-        """test_set_multiple_keys_more_than_two_keys"""
-        UserPreference.objects.create(
-            settings={"theme": "dark", "font": "Arial", "type": 1}
+        user_preference = UserPreference.objects.create(
+            settings={"theme": "dark", "font": "Arial", "notifications": True}
         )
-        obj = UserPreference.objects.annotate(
-            settings_updated=JSONSet(
-                "settings", theme="light", font="Comic Sans", type=2
+        UserPreference.objects.update(
+            settings=JSONSet(
+                "settings", theme="light", font="Comic Sans", notifications=False
             )
-        ).first()
+        )
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(
-            obj.settings_updated, {"theme": "light", "font": "Comic Sans", "type": 2}
+            user_preference.settings,
+            {"theme": "light", "font": "Comic Sans", "notifications": False},
         )
 
     def test_set_single_key_in_nested_json_object(self):
-        UserPreference.objects.create(settings={"font": {"size": 20}})
-        obj = UserPreference.objects.annotate(
-            settings_updated=JSONSet("settings", font__size=10)
-        ).first()
-        self.assertEqual(obj.settings_updated, {"font": {"size": 10}})
+        user_preference = UserPreference.objects.create(
+            settings={"font": {"size": 20}, "theme": "dark"}
+        )
+        UserPreference.objects.update(settings=JSONSet("settings", font__size=10))
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        self.assertEqual(
+            user_preference.settings, {"font": {"size": 10}, "theme": "dark"}
+        )
 
     def test_set_key_with_dot_character(self):
-        UserPreference.objects.create(settings={"font.size": 20})
-        obj = UserPreference.objects.annotate(
-            settings_updated=JSONSet("settings", **{"font.size": 10})
-        ).first()
-        self.assertEqual(obj.settings_updated, {"font.size": 10})
+        user_preference = UserPreference.objects.create(settings={"font.size": 20})
+        UserPreference.objects.update(settings=JSONSet("settings", **{"font.size": 10}))
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        self.assertEqual(user_preference.settings, {"font.size": 10})
 
-    def test_set_multiple_keys_in_nested_json_object_with_recursive_call(self):
-        UserPreference.objects.create(settings={"font": {"size": 20, "name": "Arial"}})
-        obj = UserPreference.objects.annotate(
-            settings_updated=JSONSet(
+    def test_set_multiple_keys_in_nested_json_object_with_nested_calls(self):
+        user_preference = UserPreference.objects.create(
+            settings={"font": {"size": 20, "name": "Arial"}}
+        )
+        UserPreference.objects.update(
+            settings=JSONSet(
                 JSONSet("settings", font__size=10), font__name="Comic Sans"
             )
-        ).first()
+        )
+
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(
-            obj.settings_updated, {"font": {"size": 10, "name": "Comic Sans"}}
+            user_preference.settings, {"font": {"size": 10, "name": "Comic Sans"}}
         )
 
     def test_set_single_key_with_json_object(self):
-        UserPreference.objects.create(settings={"theme": "dark"})
-        obj = UserPreference.objects.annotate(
-            settings_updated=JSONSet(
+        user_preference = UserPreference.objects.create(settings={"theme": "dark"})
+        UserPreference.objects.update(
+            settings=JSONSet(
                 "settings", theme={"type": "dark", "background_color": "black"}
             )
-        ).first()
+        )
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(
-            obj.settings_updated,
+            user_preference.settings,
             {"theme": {"type": "dark", "background_color": "black"}},
         )
 
@@ -85,9 +97,9 @@ class JSONSetTests(TestCase):
         )
 
     def test_set_single_key_with_nested_json(self):
-        UserPreference.objects.create(settings={"theme": "dark"})
-        obj = UserPreference.objects.annotate(
-            settings_updated=JSONSet(
+        user_preference = UserPreference.objects.create(settings={"theme": "dark"})
+        UserPreference.objects.update(
+            settings=JSONSet(
                 "settings",
                 theme={
                     "type": "dark",
@@ -97,9 +109,10 @@ class JSONSetTests(TestCase):
                     },
                 },
             )
-        ).first()
+        )
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(
-            obj.settings_updated,
+            user_preference.settings,
             {
                 "theme": {
                     "type": "dark",
@@ -112,22 +125,38 @@ class JSONSetTests(TestCase):
         )
 
     def test_set_single_key_with_list(self):
-        UserPreference.objects.create(settings={"rgb": [255, 255, 255]})
-        obj = UserPreference.objects.annotate(
-            settings_updated=JSONSet("settings", rgb=[0, 0, 0])
-        ).first()
-        self.assertEqual(obj.settings_updated, {"rgb": [0, 0, 0]})
+        user_preference = UserPreference.objects.create(
+            settings={"rgb": [255, 255, 255]}
+        )
+        UserPreference.objects.update(settings=JSONSet("settings", rgb=[0, 0, 0]))
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        self.assertEqual(user_preference.settings, {"rgb": [0, 0, 0]})
 
     def test_set_single_key_with_json_null(self):
-        UserPreference.objects.create(settings={"theme": "dark"})
-        obj = UserPreference.objects.annotate(
-            settings_updated=JSONSet("settings", theme=None)
-        ).first()
-        self.assertEqual(obj.settings_updated, {"theme": None})
+        user_preference = UserPreference.objects.create(settings={"theme": "dark"})
+        UserPreference.objects.update(settings=JSONSet("settings", theme=None))
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        self.assertEqual(user_preference.settings, {"theme": None})
 
     def test_set_single_key_with_nested_json_null(self):
-        UserPreference.objects.create(settings={"font": {"size": 20}})
-        obj = UserPreference.objects.annotate(
-            settings_updated=JSONSet("settings", font__size=None)
-        ).first()
-        self.assertEqual(obj.settings_updated, {"font": {"size": None}})
+        user_preference = UserPreference.objects.create(settings={"font": {"size": 20}})
+        UserPreference.objects.update(settings=JSONSet("settings", font__size=None))
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        self.assertEqual(user_preference.settings, {"font": {"size": None}})
+
+    def test_set_using_instance(self):
+        user_preference = UserPreference.objects.create(settings={"font": {"size": 20}})
+        user_preference.settings = JSONSet("settings", font__size=None)
+        user_preference.save()
+
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        self.assertEqual(user_preference.settings, {"font": {"size": None}})
+
+    def test_set_missing_key_value_returns_error(self):
+        with self.assertRaisesMessage(
+            TypeError, "JSONSet requires at least one key-value pair to be set"
+        ):
+            UserPreference.objects.create(
+                settings={"theme": "dark", "notifications": True}
+            )
+            UserPreference.objects.update(settings=JSONSet("settings"))

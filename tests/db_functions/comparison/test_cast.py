@@ -189,6 +189,11 @@ class CastTests(TestCase):
 
     @unittest.skipUnless(connection.vendor == "sqlite", "SQLite test")
     def test_cast_to_json_field_on_sqlite(self):
+        """
+        SQLite has no native JSON data type. Instead of using CAST(),
+        we use the JSON() function so SQLite knows to treat it
+        as JSON data instead of a plain string.
+        """
         with CaptureQueriesContext(connection) as captured_queries:
             list(
                 Author.objects.annotate(
@@ -202,9 +207,8 @@ class CastTests(TestCase):
 
     def test_cast_to_json_field(self):
         """
-        make different test case to sqlite, try to copy
-        test_expression_wrapped_with_parentheses_on_postgresql
-        on sqlite
+        Some database backends (e.g. MariaDB, Oracle, and SQLite) do not support
+        explicit cast to JSON. Ensure that our workarounds work on those databases.
         """
         json_value = Author.objects.annotate(
             cast_json=Cast(models.Value('{"age": 20}'), models.JSONField())

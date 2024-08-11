@@ -90,6 +90,7 @@ from .window import (
     Rank,
     RowNumber,
 )
+from .json import JSONSet, JSONRemove
 
 __all__ = [
     # comparison and conversion
@@ -187,4 +188,7 @@ __all__ = [
     "PercentRank",
     "Rank",
     "RowNumber",
+    # JSON-related functions
+    "JSONSet",
+    "JSONRemove",
 ]

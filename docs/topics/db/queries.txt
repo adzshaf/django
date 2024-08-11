@@ -1332,6 +1332,165 @@ For example:
     >>> Dog.objects.filter(data__has_any_keys=["owner", "breed"])
     <QuerySet [<Dog: Rufus>, <Dog: Meg>]>
 
+.. _updating-jsonfield:
+
+Updating ``JSONField``
+======================
+
+Updating ``JSONField`` can be achieved through various steps: basic updates
+by treating it like dictionary, making use ``JSONSet`` and ``JSONRemove``
+functions and saving them through model instance, utilizing ``JSONSet`` and
+``JSONRemove`` inside ``update()``, and using key transforms in ``update()``
+as a shorthand for ``JSONSet`` and ``JSONRemove``.
+
+To demonstrate, we will use the following example model::
+
+    from django.core.serializers.json import DjangoJSONEncoder
+    from django.db import models
+
+
+    class UserPreference(models.Model):
+        settings = models.JSONField(encoder=DjangoJSONEncoder)
+
+A simple way to update a ``JSONField`` is by treating it like a dictionary.
+To update a specific key within the ``JSONField``, you can modify it just as
+you would a key in a regular dictionary. After making the necessary changes,
+you can save the updated data using the model instance.
+
+Consider the following example:
+
+.. code-block:: pycon
+
+    >>> user_preference = UserPreference.objects.create(
+    ...     settings={"theme": "dark", "notifications": True}
+    ... )
+    >>> user_preference.settings["theme"] = "light"
+    >>> user_preference.save()
+    >>> print(user_preference.settings)
+    {'theme': 'light', 'notifications': True}
+
+Django provides ``JSONSet`` function to insert or update data in ``JSONField``.
+Take a look at following example where we use ``JSONSet`` to update data and
+saving it using the model instance.
+
+.. code-block:: pycon
+
+    >>> from django.db.models.functions import JSONSet
+    >>> user_preference = UserPreference.objects.create(
+    ...     settings={"theme": "dark", "notifications": True}
+    ... )
+    >>> user_preference.settings = JSONSet("settings", theme="light")
+    >>> user_preference.save()
+    >>> UserPreference.objects.filter(settings__theme="light")
+    <QuerySet [<UserPreference: UserPreference object (1)>]>
+
+We can also update multiple keys at a same time.
+
+.. code-block:: pycon
+
+    >>> user_preference.settings = JSONSet("settings",
+    ...     theme="dark",
+    ...     notifications=False
+    ... )
+    >>> user_preference.save()
+    >>> UserPreference.objects.filter(settings__theme="dark",
+    ...     settings__notifications=False,
+    ... )
+    <QuerySet [<UserPreference: UserPreference object (1)>]>
+
+To insert or update nested keys, we can use key transforms inside ``JSONSet``.
+
+.. code-block:: pycon
+
+    >>> user_preference.settings = JSONSet("settings",
+    ...     font__name="Arial",
+    ...     font__size=10,
+    ... ) # {'theme': 'dark', 'notifications': True, 'font': {'name': 'Arial', 'size': 10}}
+    >>> user_preference.save()
+    >>> UserPreference.objects.filter(settings__font__name="Arial",
+    ...     settings__font__size=10,
+    ... )
+    <QuerySet [<UserPreference: UserPreference object (1)>]>
+
+Django provides ``JSONRemove`` to remove specific key from a ``JSONField``.
+Here is an example where we use ``JSONRemove`` to remove data and saving it using the
+model instance.
+
+.. code-block:: pycon
+
+    >>> from django.db.models.functions import JSONRemove
+    >>> user_preference = UserPreference.objects.create(
+    ...     settings={
+    ...         "theme": "dark",
+    ...         "notifications": True,
+    ...         "font": {"size": 10, "name": "Arial"},
+    ...     }
+    ... )
+    >>> user_preference.settings = JSONRemove("settings", "theme")
+    >>> user_preference.save()
+    >>> UserPreference.objects.filter(settings__theme__isnull=True)
+    <QuerySet [<UserPreference: UserPreference object (1)>]>
+
+We can also remove multiple keys at once.
+
+.. code-block:: pycon
+
+    >>> user_preference.settings = JSONRemove("settings", "notifications", "font__size")
+    >>> user_preference.save()
+    >>> UserPreference.objects.filter(
+    ...     settings__notifications__isnull=True,
+    ...     settings__font__size__isnull=True,
+    ... )
+    <QuerySet [<UserPreference: UserPreference object (1)>]>
+
+We can use ``JSONSet`` and ``JSONRemove`` inside ``update()`` to update ``JSONField``.
+To demonstrate using ``JSONSet`` inside ``update()``, take a look at this example.
+
+.. code-block:: pycon
+
+    >>> from django.db.models.functions import JSONSet
+    >>> user_preference = UserPreference.objects.create(
+    ...     settings={"theme": "dark", "notifications": True}
+    ... )
+    >>> UserPreference.objects.update(
+    ...     settings=JSONSet("settings", theme="light")
+    ... )
+    >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
+    >>> print(user_preference.settings)
+    {'theme': 'light', 'notifications': True}
+
+We can also use ``JSONRemove`` inside ``update()``.
+
+.. code-block:: pycon
+
+    >>> from django.db.models.functions import JSONRemove
+    >>> UserPreference.objects.update(
+    ...     settings=JSONRemove("settings", "theme")
+    ... )
+    >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
+    >>> print(user_preference.settings)
+    {'notifications': True}
+
+A more convenient method for updating a ``JSONField`` is to use key transforms
+within the ``update()`` method. For example:
+
+.. code-block:: pycon
+
+    >>> user_preference = UserPreference.objects.create(
+    ...     settings={
+    ...         "theme": "dark",
+    ...         "notifications": True,
+    ...         "font": {"size": 10, "name": "Arial"},
+    ...     }
+    ... )
+    >>> UserPreference.objects.update(
+    ...     settings__theme="light",
+    ...     settings__font__size=20,
+    ... )
+    >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
+    >>> print(user_preference.settings)
+    {'theme': 'light', 'notifications': True, 'font': {'size': 20, 'name': 'Arial'}}
+
 .. _complex-lookups-with-q:
 
 Complex lookups with ``Q`` objects

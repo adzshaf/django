@@ -116,7 +116,6 @@ class JSONField(CheckFieldDefaultMixin, Field):
         transform = super().get_transform(name)
         if transform:
             return transform
-
         return KeyTransformFactory(name)
 
     def validate(self, value, model_instance):
@@ -397,7 +396,7 @@ class KeyTransform(Transform):
         ) % (lhs, datatype_values, lhs, lhs), (tuple(params) + (json_path,)) * 3
 
     def get_update_expression(self, value, lhs=None):
-        from ..functions.json import JSONSet, JSONRemove
+        from ..functions.json import JSONRemove, JSONSet
         field, key_transforms = self.unwrap_transforms()
 
         if lhs is None:

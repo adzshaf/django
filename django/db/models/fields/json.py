@@ -12,6 +12,7 @@ from django.db.models.lookups import (
     Transform,
 )
 from django.utils.translation import gettext_lazy as _
+
 from . import Field
 from .mixins import CheckFieldDefaultMixin
 
@@ -115,12 +116,7 @@ class JSONField(CheckFieldDefaultMixin, Field):
         transform = super().get_transform(name)
         if transform:
             return transform
-        """
-        class TempKeyTransform(KeyTransform):
-            lookup_name = name
 
-        return TempKeyTransform
-        """
         return KeyTransformFactory(name)
 
     def validate(self, value, model_instance):

@@ -325,6 +325,23 @@ class AdvancedTests(TestCase):
             },
         )
 
+    def test_update_field_with_list_value_using_index(self):
+        user_preference = UserPreference.objects.create(
+            settings={
+                "theme": {"color": "black", "font": ["Arial", "Calibri"]},
+                "notifications": {"email": False, "sms": True},
+            }
+        )
+        UserPreference.objects.update(settings__theme__font__1="Comic Sans")
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        self.assertEqual(
+            user_preference.settings,
+            {
+                "theme": {"font": ["Arial", "Comic Sans"], "color": "black"},
+                "notifications": {"email": False, "sms": True},
+            },
+        )
+
     def test_update_field_with_previous_nonexist_key(self):
         user_preference = UserPreference.objects.create(
             settings={

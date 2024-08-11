@@ -5,7 +5,7 @@ from django.core import checks, exceptions
 from django.db import NotSupportedError, connections, router
 from django.db.models import expressions, lookups
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.fields import TextField
+from django.db.models.fields import TextField, NOT_PROVIDED
 from django.db.models.lookups import (
     FieldGetDbPrepValueMixin,
     PostgresOperatorLookup,
@@ -397,12 +397,13 @@ class KeyTransform(Transform):
 
     def get_update_expression(self, value, lhs=None):
         from ..functions.json import JSONRemove, JSONSet
+
         field, key_transforms = self.unwrap_transforms()
 
         if lhs is None:
             lhs = field
 
-        if value is None:
+        if value is NOT_PROVIDED:
             return JSONRemove(lhs, LOOKUP_SEP.join(key_transforms))
 
         return JSONSet(lhs, **{LOOKUP_SEP.join(key_transforms): value})

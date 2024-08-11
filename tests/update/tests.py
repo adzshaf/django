@@ -12,6 +12,7 @@ from django.db.models import (
     Max,
     Value,
     When,
+    NOT_PROVIDED,
 )
 from django.db.models.functions import Abs, Concat, Lower
 from django.test import TestCase
@@ -279,7 +280,7 @@ class AdvancedTests(TestCase):
                 "notifications": {"email": False, "sms": True},
             }
         )
-        UserPreference.objects.update(settings__theme__color=None)
+        UserPreference.objects.update(settings__theme__color=NOT_PROVIDED)
         user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(
             user_preference.settings,
@@ -297,7 +298,7 @@ class AdvancedTests(TestCase):
             }
         )
         UserPreference.objects.update(
-            settings__theme__font="Comic Sans", settings__theme__color=None
+            settings__theme__font="Comic Sans", settings__theme__color=NOT_PROVIDED
         )
         user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(
@@ -366,9 +367,7 @@ class AdvancedTests(TestCase):
                 "notifications": {"email": False, "sms": True},
             }
         )
-        UserPreference.objects.update(
-            settings__theme=Value(None, output_field=JSONField())
-        )
+        UserPreference.objects.update(settings__theme=None)
         user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(
             user_preference.settings,

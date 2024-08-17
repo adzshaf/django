@@ -1,3 +1,4 @@
+from django.db import NotSupportedError
 from django.db.models.constants import LOOKUP_SEP
 from django.db.models.expressions import Func, Value
 from django.db.models.fields.json import JSONField, compile_json_path
@@ -21,6 +22,10 @@ class JSONSet(Func):
         arg_joiner=None,
         **extra_context,
     ):
+        if not connection.features.supports_partial_json_update:
+            raise NotSupportedError(
+                "JSONSet() is not supported on this database backend."
+            )
         copy = self.copy()
         new_source_expression = copy.get_source_expressions()
 
@@ -78,6 +83,10 @@ class JSONSet(Func):
         )
 
     def as_oracle(self, compiler, connection, **extra_context):
+        if not connection.features.supports_partial_json_update:
+            raise NotSupportedError(
+                "JSONSet() is not supported on this database backend."
+            )
         copy = self.copy()
 
         all_items = list(self.fields.items())
@@ -131,6 +140,10 @@ class JSONRemove(Func):
         arg_joiner=None,
         **extra_context,
     ):
+        if not connection.features.supports_partial_json_update:
+            raise NotSupportedError(
+                "JSONRemove() is not supported on this database backend."
+            )
         copy = self.copy()
         new_source_expression = copy.get_source_expressions()
 
@@ -173,6 +186,11 @@ class JSONRemove(Func):
         )
 
     def as_oracle(self, compiler, connection, **extra_context):
+        if not connection.features.supports_partial_json_update:
+            raise NotSupportedError(
+                "JSONRemove() is not supported on this database backend."
+            )
+
         copy = self.copy()
 
         all_items = self.paths

@@ -1,3 +1,7 @@
+import decimal
+import json
+
+from django.db.models import JSONField
 from django.db.models.functions.json import JSONSet
 from django.test import TestCase, skipUnlessDBFeature
 
@@ -208,4 +212,30 @@ class JSONSetTests(TestCase):
         self.assertEqual(
             user_preference.settings,
             {"theme": "dark", "notifications": True, "font": "Arial"},
+        )
+
+    def test_set_using_custom_encoder(self):
+        class CustomJSONEncoder(json.JSONEncoder):
+            def default(self, o):
+                if isinstance(o, decimal.Decimal):
+                    return str(o)
+                return super().default(o)
+
+        user_preference = UserPreference.objects.create(
+            settings={
+                "theme": {"type": "dark", "opacity": decimal.Decimal(100.0)},
+                "notifications": True,
+            }
+        )
+        UserPreference.objects.update(
+            settings=JSONSet(
+                "settings",
+                output_field=JSONField(encoder=CustomJSONEncoder),
+                theme__opacity=decimal.Decimal(50.0),
+            )
+        )
+        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        self.assertEqual(
+            user_preference.settings,
+            {"theme": {"type": "dark", "opacity": "50"}, "notifications": True},
         )

@@ -266,7 +266,9 @@ class JSONSetTests(TestCase):
 
     @skipIfDBFeature("supports_partial_json_update")
     def test_set_not_supported(self):
-        with self.assertRaises(NotSupportedError):
+        with self.assertRaisesMessage(
+            NotSupportedError, "JSONSet() is not supported on this database backend."
+        ):
             UserPreference.objects.create(
                 settings={"theme": "dark", "notifications": True}
             )

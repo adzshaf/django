@@ -76,8 +76,8 @@ class JSONRemoveTests(TestCase):
 
     @skipIfDBFeature("supports_partial_json_update")
     def test_remove_not_supported(self):
-        with self.assertRaises(NotSupportedError):
-            UserPreference.objects.create(
-                settings={"theme": "dark", "font": "Arial"}
-            )
+        with self.assertRaisesMessage(
+            NotSupportedError, "JSONRemove() is not supported on this database backend."
+        ):
+            UserPreference.objects.create(settings={"theme": "dark", "font": "Arial"})
             UserPreference.objects.update(settings=JSONRemove("settings", "theme"))

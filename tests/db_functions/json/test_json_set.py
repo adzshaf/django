@@ -52,6 +52,10 @@ class JSONSetTests(TestCase):
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_key_with_dot_character(self):
+        """
+        Most databases use a dot-notation for the JSON path.
+        Ensure that using a key that contains a dot is escaped properly.
+        """
         user_preference = UserPreference.objects.create(
             settings={"font.size": 20, "notifications": True}
         )
@@ -116,6 +120,10 @@ class JSONSetTests(TestCase):
                 )
             )
             .first()
+        )
+        self.assertEqual(
+            obj.settings_updated,
+            {"theme": {"type": "dark", "background_color": "black"}, "font_size": 20}
         )
         self.assertEqual(
             obj.settings_updated_again,

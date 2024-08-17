@@ -123,7 +123,7 @@ class JSONSetTests(TestCase):
         )
         self.assertEqual(
             obj.settings_updated,
-            {"theme": {"type": "dark", "background_color": "black"}, "font_size": 20}
+            {"theme": {"type": "dark", "background_color": "black"}, "font_size": 20},
         )
         self.assertEqual(
             obj.settings_updated_again,
@@ -267,8 +267,7 @@ class JSONSetTests(TestCase):
     @skipIfDBFeature("supports_partial_json_update")
     def test_set_not_supported(self):
         with self.assertRaises(NotSupportedError):
-            user_preference = UserPreference.objects.create(
+            UserPreference.objects.create(
                 settings={"theme": "dark", "notifications": True}
             )
-            UserPreference.objects.update(
-                settings=JSONSet("settings", theme="light"))
+            UserPreference.objects.update(settings=JSONSet("settings", theme="light"))

@@ -1,6 +1,6 @@
 from django.db import NotSupportedError
 from django.db.models.functions.json import JSONRemove
-from django.test import TestCase, skipUnlessDBFeature, skipIfDBFeature
+from django.test import TestCase, skipIfDBFeature, skipUnlessDBFeature
 
 from ..models import UserPreference
 
@@ -76,10 +76,8 @@ class JSONRemoveTests(TestCase):
 
     @skipIfDBFeature("supports_partial_json_update")
     def test_remove_not_supported(self):
-        with self.assertRaises(
-            NotSupportedError
-        ):
-            user_preference = UserPreference.objects.create(
+        with self.assertRaises(NotSupportedError):
+            UserPreference.objects.create(
                 settings={"theme": "dark", "font": "Arial"}
             )
             UserPreference.objects.update(settings=JSONRemove("settings", "theme"))

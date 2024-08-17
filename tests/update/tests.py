@@ -3,6 +3,7 @@ import unittest
 from django.core.exceptions import FieldError
 from django.db import IntegrityError, connection, transaction
 from django.db.models import (
+    NOT_PROVIDED,
     Case,
     CharField,
     Count,
@@ -10,11 +11,11 @@ from django.db.models import (
     IntegerField,
     Max,
     When,
-    NOT_PROVIDED,
 )
 from django.db.models.functions import Abs, Concat, Lower
 from django.test import TestCase, skipUnlessDBFeature
 from django.test.utils import register_lookup
+
 from .models import (
     A,
     B,

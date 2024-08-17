@@ -396,7 +396,7 @@ class KeyTransform(Transform):
         ) % (lhs, datatype_values, lhs, lhs), (tuple(params) + (json_path,)) * 3
 
     def get_update_expression(self, value, lhs=None):
-        from ..functions.json import JSONRemove, JSONSet
+        from ..functions import JSONRemove, JSONSet
 
         field, key_transforms = self.unwrap_transforms()
 

@@ -519,3 +519,18 @@ class TransformUpdateTests(TestCase):
 
         user_preference.refresh_from_db()
         self.assertEqual(user_preference.date_created, date_created)
+
+    def test_invalid_transform(self):
+        date_created = datetime.datetime(3000, 1, 1, 21, 22, 23)
+        user_preference = UserPreference.objects.create(
+            settings={}, date_created=date_created
+        )
+
+        with self.assertRaisesMessage(
+            FieldError,
+            "foo is not a valid Transform on DateTimeField",
+        ):
+            UserPreference.objects.update(date_created__foo=2024)
+
+        user_preference.refresh_from_db()
+        self.assertEqual(user_preference.date_created, date_created)

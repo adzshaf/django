@@ -102,8 +102,8 @@ class UpdateQuery(Query):
                         lhs = transform_class(lhs)
                     else:
                         raise FieldError(
-                            f"{transform} is not a valid Transform \
-                            on {field.__class__.__name__}"
+                            f"{transform} is not a valid Transform "
+                            f"on {field.__class__.__name__}"
                         )
 
                 # Handle updating the same field multiple times with

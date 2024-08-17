@@ -1,11 +1,13 @@
+from django.db import NotSupportedError
 from django.db.models.functions.json import JSONRemove
-from django.test import TestCase, skipUnlessDBFeature
+from django.test import TestCase, skipUnlessDBFeature, skipIfDBFeature
 
 from ..models import UserPreference
 
 
 @skipUnlessDBFeature("supports_json_field")
 class JSONRemoveTests(TestCase):
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_remove_single_key(self):
         user_preference = UserPreference.objects.create(
             settings={"theme": "dark", "font": "Arial"}
@@ -14,12 +16,14 @@ class JSONRemoveTests(TestCase):
         user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(user_preference.settings, {"font": "Arial"})
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_remove_single_key_to_empty_property(self):
         user_preference = UserPreference.objects.create(settings={"theme": "dark"})
         UserPreference.objects.update(settings=JSONRemove("settings", "theme"))
         user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(user_preference.settings, {})
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_remove_nested_key(self):
         user_preference = UserPreference.objects.create(
             settings={"font": {"size": 20, "color": "red"}}
@@ -28,6 +32,7 @@ class JSONRemoveTests(TestCase):
         user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(user_preference.settings, {"font": {"size": 20}})
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_remove_multiple_keys(self):
         user_preference = UserPreference.objects.create(
             settings={"font": {"size": 20, "color": "red"}, "theme": "dark"}
@@ -38,6 +43,7 @@ class JSONRemoveTests(TestCase):
         user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(user_preference.settings, {"font": {"size": 20}})
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_remove_keys_with_recursive_call(self):
         user_preference = UserPreference.objects.create(
             settings={"font": {"size": 20, "color": "red"}, "theme": "dark"}
@@ -48,6 +54,7 @@ class JSONRemoveTests(TestCase):
         user_preference = UserPreference.objects.get(pk=user_preference.pk)
         self.assertEqual(user_preference.settings, {"font": {"size": 20}})
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_remove_using_instance(self):
         user_preference = UserPreference.objects.create(
             settings={"theme": "dark", "font": "Arial"}
@@ -66,3 +73,13 @@ class JSONRemoveTests(TestCase):
                 settings={"theme": "dark", "notifications": True}
             )
             UserPreference.objects.update(settings=JSONRemove("settings"))
+
+    @skipIfDBFeature("supports_partial_json_update")
+    def test_remove_not_supported(self):
+        with self.assertRaises(
+            NotSupportedError
+        ):
+            user_preference = UserPreference.objects.create(
+                settings={"theme": "dark", "font": "Arial"}
+            )
+            UserPreference.objects.update(settings=JSONRemove("settings", "theme"))

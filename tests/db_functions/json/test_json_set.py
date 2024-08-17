@@ -1,15 +1,17 @@
 import decimal
 import json
 
+from django.db import NotSupportedError
 from django.db.models import JSONField
 from django.db.models.functions.json import JSONSet
-from django.test import TestCase, skipUnlessDBFeature
+from django.test import TestCase, skipUnlessDBFeature, skipIfDBFeature
 
 from ..models import UserPreference
 
 
 @skipUnlessDBFeature("supports_json_field")
 class JSONSetTests(TestCase):
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key(self):
         user_preference = UserPreference.objects.create(
             settings={"theme": "dark", "notifications": True}
@@ -20,6 +22,7 @@ class JSONSetTests(TestCase):
             user_preference.settings, {"theme": "light", "notifications": True}
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_multiple_keys(self):
         user_preference = UserPreference.objects.create(
             settings={"theme": "dark", "font": "Arial", "notifications": True}
@@ -35,6 +38,7 @@ class JSONSetTests(TestCase):
             {"theme": "light", "font": "Comic Sans", "notifications": False},
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_in_nested_json_object(self):
         user_preference = UserPreference.objects.create(
             settings={"font": {"size": 20, "name": "Arial"}, "theme": "dark"}
@@ -46,6 +50,7 @@ class JSONSetTests(TestCase):
             {"font": {"size": 10, "name": "Arial"}, "theme": "dark"},
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_key_with_dot_character(self):
         user_preference = UserPreference.objects.create(
             settings={"font.size": 20, "notifications": True}
@@ -56,6 +61,7 @@ class JSONSetTests(TestCase):
             user_preference.settings, {"font.size": 10, "notifications": True}
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_multiple_keys_in_nested_json_object_with_nested_calls(self):
         user_preference = UserPreference.objects.create(
             settings={
@@ -75,6 +81,7 @@ class JSONSetTests(TestCase):
             {"font": {"size": 10, "name": "Comic Sans"}, "notifications": True},
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_json_object(self):
         user_preference = UserPreference.objects.create(
             settings={"theme": "dark", "notifications": True}
@@ -93,6 +100,7 @@ class JSONSetTests(TestCase):
             },
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_multiple_call_set_single_key_with_json_object(self):
         UserPreference.objects.create(settings={"theme": "dark", "font_size": 20})
         obj = (
@@ -114,6 +122,7 @@ class JSONSetTests(TestCase):
             {"theme": {"type": "dark", "background_color": "red"}, "font_size": 20},
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_nested_json(self):
         user_preference = UserPreference.objects.create(settings={"theme": "dark"})
         UserPreference.objects.update(
@@ -142,6 +151,7 @@ class JSONSetTests(TestCase):
             },
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_list(self):
         user_preference = UserPreference.objects.create(
             settings={"rgb": [255, 255, 255], "notifications": True}
@@ -152,6 +162,7 @@ class JSONSetTests(TestCase):
             user_preference.settings, {"rgb": [0, 0, 0], "notifications": True}
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_list_using_index(self):
         user_preference = UserPreference.objects.create(
             settings={"rgb": [255, 255, 255], "notifications": True}
@@ -162,6 +173,7 @@ class JSONSetTests(TestCase):
             user_preference.settings, {"rgb": [255, 0, 255], "notifications": True}
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_json_null(self):
         user_preference = UserPreference.objects.create(
             settings={"theme": "dark", "notifications": True}
@@ -172,6 +184,7 @@ class JSONSetTests(TestCase):
             user_preference.settings, {"theme": None, "notifications": True}
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_nested_json_null(self):
         user_preference = UserPreference.objects.create(
             settings={"font": {"size": 20}, "notifications": True}
@@ -182,6 +195,7 @@ class JSONSetTests(TestCase):
             user_preference.settings, {"font": {"size": None}, "notifications": True}
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_using_instance(self):
         user_preference = UserPreference.objects.create(
             settings={"font": {"size": 20}, "notifications": True}
@@ -203,6 +217,7 @@ class JSONSetTests(TestCase):
             )
             UserPreference.objects.update(settings=JSONSet("settings"))
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_insert_new_key(self):
         user_preference = UserPreference.objects.create(
             settings={"theme": "dark", "notifications": True}
@@ -214,6 +229,7 @@ class JSONSetTests(TestCase):
             {"theme": "dark", "notifications": True, "font": "Arial"},
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_using_custom_encoder(self):
         class CustomJSONEncoder(json.JSONEncoder):
             def default(self, o):
@@ -239,3 +255,12 @@ class JSONSetTests(TestCase):
             user_preference.settings,
             {"theme": {"type": "dark", "opacity": "50"}, "notifications": True},
         )
+
+    @skipIfDBFeature("supports_partial_json_update")
+    def test_set_not_supported(self):
+        with self.assertRaises(NotSupportedError):
+            user_preference = UserPreference.objects.create(
+                settings={"theme": "dark", "notifications": True}
+            )
+            UserPreference.objects.update(
+                settings=JSONSet("settings", theme="light"))

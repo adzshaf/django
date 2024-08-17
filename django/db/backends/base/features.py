@@ -342,6 +342,8 @@ class BaseDatabaseFeatures:
     json_key_contains_list_matching_requires_list = False
     # Does the backend support JSONObject() database function?
     has_json_object_function = True
+    # Does the backend support partial updates to JSONField?
+    supports_partial_json_update = True
 
     # Does the backend support column collations?
     supports_collation_on_charfield = True

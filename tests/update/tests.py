@@ -15,7 +15,7 @@ from django.db.models import (
     NOT_PROVIDED,
 )
 from django.db.models.functions import Abs, Concat, Lower
-from django.test import TestCase
+from django.test import TestCase, skipUnlessDBFeature
 from django.test.utils import register_lookup
 
 from .models import (
@@ -237,6 +237,7 @@ class AdvancedTests(TestCase):
                             new_name=annotation,
                         ).update(name=F("new_name"))
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_update_json_key_transform(self):
         user_preference = UserPreference.objects.create(
             settings={
@@ -254,6 +255,7 @@ class AdvancedTests(TestCase):
             },
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_update_json_multiple_key_transform(self):
         user_preference = UserPreference.objects.create(
             settings={
@@ -273,6 +275,7 @@ class AdvancedTests(TestCase):
             },
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_update_json_remove(self):
         user_preference = UserPreference.objects.create(
             settings={
@@ -290,7 +293,8 @@ class AdvancedTests(TestCase):
             },
         )
 
-    def test_combine_update_json_set_remove(self):
+    @skipUnlessDBFeature("supports_partial_json_update")
+    def test_combine_update_json_remove(self):
         user_preference = UserPreference.objects.create(
             settings={
                 "theme": {"color": "black", "font": "Arial"},
@@ -309,6 +313,7 @@ class AdvancedTests(TestCase):
             },
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_update_field_with_list_value(self):
         user_preference = UserPreference.objects.create(
             settings={
@@ -326,6 +331,7 @@ class AdvancedTests(TestCase):
             },
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_update_field_with_list_value_using_index(self):
         user_preference = UserPreference.objects.create(
             settings={
@@ -343,6 +349,7 @@ class AdvancedTests(TestCase):
             },
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_update_field_with_previous_nonexist_key(self):
         user_preference = UserPreference.objects.create(
             settings={
@@ -360,6 +367,7 @@ class AdvancedTests(TestCase):
             },
         )
 
+    @skipUnlessDBFeature("supports_partial_json_update")
     def test_update_field_with_none_value(self):
         user_preference = UserPreference.objects.create(
             settings={

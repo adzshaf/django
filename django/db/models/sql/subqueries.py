@@ -99,8 +99,7 @@ class UpdateQuery(Query):
                 for transform in transforms:
                     transform_class = field.get_transform(transform)
                     if transform_class:
-                        if transform_class.supports_update:
-                            lhs = transform_class(lhs)
+                        lhs = transform_class(lhs)
                     else:
                         raise FieldError(
                             f"{transform} is not a valid Transform \

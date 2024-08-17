@@ -55,5 +55,5 @@ class UniqueNumberChild(UniqueNumber):
 
 
 class UserPreference(models.Model):
-    id = models.AutoField(primary_key=True)
     settings = models.JSONField(encoder=DjangoJSONEncoder)
+    date_created = models.DateTimeField(null=True)

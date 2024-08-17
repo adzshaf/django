@@ -201,7 +201,6 @@ class Transform(RegisterLookupMixin, Func):
 
     bilateral = False
     arity = 1
-    supports_update = False
 
     @property
     def lhs(self):

@@ -335,7 +335,6 @@ JSONField.register_lookup(JSONIContains)
 class KeyTransform(Transform):
     postgres_operator = "->"
     postgres_nested_operator = "#>"
-    supports_update = True
 
     def __init__(self, key_name, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -637,7 +636,6 @@ KeyTransform.register_lookup(KeyTransformGte)
 
 
 class KeyTransformFactory:
-    supports_update = True
 
     def __init__(self, key_name):
         self.key_name = key_name

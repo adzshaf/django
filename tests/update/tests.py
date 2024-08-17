@@ -1,3 +1,4 @@
+import datetime
 import unittest
 
 from django.core.exceptions import FieldError
@@ -501,3 +502,20 @@ class MySQLUpdateOrderByTest(TestCase):
         self.assertEqual(updated, 1)
         related.refresh_from_db()
         self.assertEqual(related.name, "new")
+
+
+class TransformUpdateTests(TestCase):
+    def test_get_update_expression_not_implemented(self):
+        date_created = datetime.datetime(3000, 1, 1, 21, 22, 23)
+        user_preference = UserPreference.objects.create(
+            settings={}, date_created=date_created
+        )
+
+        with self.assertRaisesMessage(
+            NotImplementedError,
+            "Using ExtractYear is not supported in QuerySet.update()",
+        ):
+            UserPreference.objects.update(date_created__year=2024)
+
+        user_preference.refresh_from_db()
+        self.assertEqual(user_preference.date_created, date_created)

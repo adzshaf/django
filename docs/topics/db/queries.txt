@@ -1388,12 +1388,10 @@ We can also update multiple keys at a same time.
 
 .. code-block:: pycon
 
-    >>> user_preference.settings = JSONSet("settings",
-    ...     theme="dark",
-    ...     notifications=False
-    ... )
+    >>> user_preference.settings = JSONSet("settings", theme="dark", notifications=False)
     >>> user_preference.save()
-    >>> UserPreference.objects.filter(settings__theme="dark",
+    >>> UserPreference.objects.filter(
+    ...     settings__theme="dark",
     ...     settings__notifications=False,
     ... )
     <QuerySet [<UserPreference: UserPreference object (1)>]>
@@ -1402,12 +1400,14 @@ To insert or update nested keys, we can use key transforms inside ``JSONSet``.
 
 .. code-block:: pycon
 
-    >>> user_preference.settings = JSONSet("settings",
+    >>> user_preference.settings = JSONSet(
+    ...     "settings",
     ...     font__name="Arial",
     ...     font__size=10,
-    ... ) # {'theme': 'dark', 'notifications': True, 'font': {'name': 'Arial', 'size': 10}}
+    ... )  # {'theme': 'dark', 'notifications': True, 'font': {'name': 'Arial', 'size': 10}}
     >>> user_preference.save()
-    >>> UserPreference.objects.filter(settings__font__name="Arial",
+    >>> UserPreference.objects.filter(
+    ...     settings__font__name="Arial",
     ...     settings__font__size=10,
     ... )
     <QuerySet [<UserPreference: UserPreference object (1)>]>
@@ -1416,12 +1416,14 @@ You can pass ``None`` value inside ``JSONSet`` key to make JSON ``null``.
 
 .. code-block:: pycon
 
-    >>> user_preference.settings = JSONSet("settings",
+    >>> user_preference.settings = JSONSet(
+    ...     "settings",
     ...     font__name="Arial",
     ...     font__size=None,
-    ... ) # {'theme': 'dark', 'notifications': True, 'font': {'name': 'Arial', 'size': null}}
+    ... )  # {'theme': 'dark', 'notifications': True, 'font': {'name': 'Arial', 'size': null}}
     >>> user_preference.save()
-    >>> UserPreference.objects.filter(settings__font__name="Arial",
+    >>> UserPreference.objects.filter(
+    ...     settings__font__name="Arial",
     ...     settings__font__size=None,
     ... )
     <QuerySet [<UserPreference: UserPreference object (1)>]>
@@ -1466,9 +1468,7 @@ To demonstrate using ``JSONSet`` inside ``update()``, take a look at this exampl
     >>> user_preference = UserPreference.objects.create(
     ...     settings={"theme": "dark", "notifications": True}
     ... )
-    >>> UserPreference.objects.update(
-    ...     settings=JSONSet("settings", theme="light")
-    ... )
+    >>> UserPreference.objects.update(settings=JSONSet("settings", theme="light"))
     >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
     >>> print(user_preference.settings)
     {'theme': 'light', 'notifications': True}
@@ -1478,9 +1478,7 @@ We can also use ``JSONRemove`` inside ``update()``.
 .. code-block:: pycon
 
     >>> from django.db.models.functions import JSONRemove
-    >>> UserPreference.objects.update(
-    ...     settings=JSONRemove("settings", "theme")
-    ... )
+    >>> UserPreference.objects.update(settings=JSONRemove("settings", "theme"))
     >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
     >>> print(user_preference.settings)
     {'notifications': True}

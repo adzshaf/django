@@ -2010,9 +2010,7 @@ Usage example:
     >>> user_preference = UserPreference.objects.create(
     ...     settings={"theme": "dark", "notifications": True}
     ... )
-    >>> UserPreference.objects.update(
-    ...     settings=JSONSet("settings", theme="light")
-    ... )
+    >>> UserPreference.objects.update(settings=JSONSet("settings", theme="light"))
     1
     >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
     >>> print(user_preference.settings)
@@ -2036,9 +2034,7 @@ Usage example:
     >>> user_preference = UserPreference.objects.create(
     ...     settings={"theme": "dark", "notifications": True}
     ... )
-    >>> UserPreference.objects.update(
-    ...     settings=JSONRemove("settings", "theme")
-    ... )
+    >>> UserPreference.objects.update(settings=JSONRemove("settings", "theme"))
     1
     >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
     >>> print(user_preference.settings)

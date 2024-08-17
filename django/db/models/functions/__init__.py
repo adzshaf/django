@@ -25,6 +25,7 @@ from .datetime import (
     TruncWeek,
     TruncYear,
 )
+from .json import JSONRemove, JSONSet
 from .math import (
     Abs,
     ACos,
@@ -90,7 +91,6 @@ from .window import (
     Rank,
     RowNumber,
 )
-from .json import JSONSet, JSONRemove
 
 __all__ = [
     # comparison and conversion

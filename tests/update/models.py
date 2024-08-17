@@ -2,6 +2,7 @@
 Tests for the update() queryset method that allows in-place, multi-object
 updates.
 """
+
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 

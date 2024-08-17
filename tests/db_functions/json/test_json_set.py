@@ -4,7 +4,7 @@ import json
 from django.db import NotSupportedError
 from django.db.models import JSONField
 from django.db.models.functions.json import JSONSet
-from django.test import TestCase, skipUnlessDBFeature, skipIfDBFeature
+from django.test import TestCase, skipIfDBFeature, skipUnlessDBFeature
 
 from ..models import UserPreference
 

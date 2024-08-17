@@ -8,16 +8,13 @@ from django.db.models import (
     Count,
     F,
     IntegerField,
-    JSONField,
     Max,
-    Value,
     When,
     NOT_PROVIDED,
 )
 from django.db.models.functions import Abs, Concat, Lower
 from django.test import TestCase, skipUnlessDBFeature
 from django.test.utils import register_lookup
-
 from .models import (
     A,
     B,

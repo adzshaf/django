@@ -1,6 +1,7 @@
 """
 Tests for built in Function expressions.
 """
+
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 

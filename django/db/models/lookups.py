@@ -216,9 +216,15 @@ class Transform(RegisterLookupMixin, Func):
             bilateral_transforms.append(self.__class__)
         return bilateral_transforms
 
-    def get_update_expression(self, value):
+    def get_update_expression(self, value, lhs=None):
+        """
+        Compose an update expression for this transform with a given value,
+        to be used in QuerySet.update(). Multiple transforms may be used for the same
+        field in a single update() call, in which case, the previous expression is
+        provided by the lhs parameter.
+        """
         raise NotImplementedError(
-            "get_update_expression is not supported in this transform"
+            f"Using {self.__class__.__name__} is not supported in QuerySet.update()"
         )
 
 

@@ -1412,6 +1412,20 @@ To insert or update nested keys, we can use key transforms inside ``JSONSet``.
     ... )
     <QuerySet [<UserPreference: UserPreference object (1)>]>
 
+You can pass ``None`` value inside ``JSONSet`` key to make JSON ``null``.
+
+.. code-block:: pycon
+
+    >>> user_preference.settings = JSONSet("settings",
+    ...     font__name="Arial",
+    ...     font__size=None,
+    ... ) # {'theme': 'dark', 'notifications': True, 'font': {'name': 'Arial', 'size': null}}
+    >>> user_preference.save()
+    >>> UserPreference.objects.filter(settings__font__name="Arial",
+    ...     settings__font__size=None,
+    ... )
+    <QuerySet [<UserPreference: UserPreference object (1)>]>
+
 Django provides ``JSONRemove`` to remove specific key from a ``JSONField``.
 Here is an example where we use ``JSONRemove`` to remove data and saving it using the
 model instance.

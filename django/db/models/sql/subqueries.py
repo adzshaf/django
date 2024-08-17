@@ -86,26 +86,35 @@ class UpdateQuery(Query):
         """
         field_dict = dict()
         for name, val in values.items():
-            name, *rest = name.split(LOOKUP_SEP)
+            name, *transforms = name.split(LOOKUP_SEP)
             field = self.get_meta().get_field(name)
             direct = (
                 not (field.auto_created and not field.concrete) or not field.concrete
             )
             model = field.model._meta.concrete_model
             lhs = name
-            if rest:
-                for transform in rest:
+
+            # Support using transforms in update()
+            if transforms:
+                for transform in transforms:
                     transform_class = field.get_transform(transform)
                     if transform_class:
                         if transform_class.supports_update:
                             lhs = transform_class(lhs)
+                    else:
+                        raise FieldError(
+                            f"{transform} is not a valid Transform \
+                            on {field.__class__.__name__}"
+                        )
 
+                # Handle updating the same field multiple times with
+                # different transforms
                 if field_dict.get(field):
-                    value = field_dict.get(field)[-1]
+                    previous_expression = field_dict.get(field)[-1]
                     field_dict[field] = (
                         field,
                         model,
-                        lhs.get_update_expression(val, value),
+                        lhs.get_update_expression(val, previous_expression),
                     )
                 else:
                     field_dict[field] = (field, model, lhs.get_update_expression(val))

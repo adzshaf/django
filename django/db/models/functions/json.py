@@ -5,13 +5,12 @@ from django.db.models.functions import Cast
 
 
 class JSONSet(Func):
-    output_field = JSONField()
-
-    def __init__(self, expression, **fields):
+    def __init__(self, expression, output_field=None, **fields):
         if not fields:
             raise TypeError("JSONSet requires at least one key-value pair to be set")
         self.fields = fields
-        super().__init__(expression)
+        output_field = output_field or JSONField()
+        super().__init__(expression, output_field=output_field)
 
     def as_sql(
         self,

@@ -40,19 +40,19 @@ example to update a ``JSONField``.
 
 .. code-block:: pycon
 
-    >>> user_preference = UserPreference.objects.create(
+    >>> user_preferences = UserPreferences.objects.create(
     ...     settings={
     ...         "theme": "dark",
     ...         "notifications": True,
     ...         "font": {"size": 10, "name": "Arial"},
     ...     }
     ... )
-    >>> UserPreference.objects.update(
+    >>> UserPreferences.objects.update(
     ...     settings__theme="light",
     ...     settings__font__size=20,
     ... )
-    >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
-    >>> print(user_preference.settings)
+    >>> user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
+    >>> print(user_preferences.settings)
     {'theme': 'light', 'notifications': True, 'font': {'size': 20, 'name': 'Arial'}}
 
 You can also remove a key by providing ``NOT_PROVIDED`` to parameter value.
@@ -60,19 +60,19 @@ You can also remove a key by providing ``NOT_PROVIDED`` to parameter value.
 .. code-block:: pycon
 
     >>> from django.db.models import NOT_PROVIDED
-    >>> user_preference = UserPreference.objects.create(
+    >>> user_preferences = UserPreferences.objects.create(
     ...     settings={
     ...         "theme": "dark",
     ...         "notifications": True,
     ...         "font": {"size": 10, "name": "Arial"},
     ...     }
     ... )
-    >>> UserPreference.objects.update(
+    >>> UserPreferences.objects.update(
     ...     settings__theme=NOT_PROVIDED,
     ...     settings__font__size=20,
     ... )
-    >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
-    >>> print(user_preference.settings)
+    >>> user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
+    >>> print(user_preferences.settings)
     {'notifications': True, 'font': {'size': 20, 'name': 'Arial'}}
 
 Minor features

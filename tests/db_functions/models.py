@@ -58,5 +58,5 @@ class FloatModel(models.Model):
     f2 = models.FloatField(null=True, blank=True)
 
 
-class UserPreference(models.Model):
+class UserPreferences(models.Model):
     settings = models.JSONField(encoder=DjangoJSONEncoder)

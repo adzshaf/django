@@ -54,6 +54,6 @@ class UniqueNumberChild(UniqueNumber):
     pass
 
 
-class UserPreference(models.Model):
+class UserPreferences(models.Model):
     settings = models.JSONField(encoder=DjangoJSONEncoder)
     date_created = models.DateTimeField(null=True)

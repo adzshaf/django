@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name="UserPreference",
+            name="UserPreferences",
             fields=[
                 ("settings", models.JSONField()),
             ],

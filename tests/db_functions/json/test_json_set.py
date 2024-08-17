@@ -6,47 +6,47 @@ from django.db.models import JSONField
 from django.db.models.functions.json import JSONSet
 from django.test import TestCase, skipIfDBFeature, skipUnlessDBFeature
 
-from ..models import UserPreference
+from ..models import UserPreferences
 
 
 @skipUnlessDBFeature("supports_json_field")
 class JSONSetTests(TestCase):
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key(self):
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={"theme": "dark", "notifications": True}
         )
-        UserPreference.objects.update(settings=JSONSet("settings", theme="light"))
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        UserPreferences.objects.update(settings=JSONSet("settings", theme="light"))
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings, {"theme": "light", "notifications": True}
+            user_preferences.settings, {"theme": "light", "notifications": True}
         )
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_multiple_keys(self):
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={"theme": "dark", "font": "Arial", "notifications": True}
         )
-        UserPreference.objects.update(
+        UserPreferences.objects.update(
             settings=JSONSet(
                 "settings", theme="light", font="Comic Sans", notifications=False
             )
         )
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings,
+            user_preferences.settings,
             {"theme": "light", "font": "Comic Sans", "notifications": False},
         )
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_in_nested_json_object(self):
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={"font": {"size": 20, "name": "Arial"}, "theme": "dark"}
         )
-        UserPreference.objects.update(settings=JSONSet("settings", font__size=10))
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        UserPreferences.objects.update(settings=JSONSet("settings", font__size=10))
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings,
+            user_preferences.settings,
             {"font": {"size": 10, "name": "Arial"}, "theme": "dark"},
         )
 
@@ -56,48 +56,50 @@ class JSONSetTests(TestCase):
         Most databases use a dot-notation for the JSON path.
         Ensure that using a key that contains a dot is escaped properly.
         """
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={"font.size": 20, "notifications": True}
         )
-        UserPreference.objects.update(settings=JSONSet("settings", **{"font.size": 10}))
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        UserPreferences.objects.update(
+            settings=JSONSet("settings", **{"font.size": 10})
+        )
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings, {"font.size": 10, "notifications": True}
+            user_preferences.settings, {"font.size": 10, "notifications": True}
         )
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_multiple_keys_in_nested_json_object_with_nested_calls(self):
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={
                 "font": {"size": 20, "name": "Arial"},
                 "notifications": True,
             }
         )
-        UserPreference.objects.update(
+        UserPreferences.objects.update(
             settings=JSONSet(
                 JSONSet("settings", font__size=10), font__name="Comic Sans"
             )
         )
 
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings,
+            user_preferences.settings,
             {"font": {"size": 10, "name": "Comic Sans"}, "notifications": True},
         )
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_json_object(self):
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={"theme": "dark", "notifications": True}
         )
-        UserPreference.objects.update(
+        UserPreferences.objects.update(
             settings=JSONSet(
                 "settings", theme={"type": "dark", "background_color": "black"}
             )
         )
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings,
+            user_preferences.settings,
             {
                 "theme": {"type": "dark", "background_color": "black"},
                 "notifications": True,
@@ -106,9 +108,9 @@ class JSONSetTests(TestCase):
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_multiple_call_set_single_key_with_json_object(self):
-        UserPreference.objects.create(settings={"theme": "dark", "font_size": 20})
+        UserPreferences.objects.create(settings={"theme": "dark", "font_size": 20})
         obj = (
-            UserPreference.objects.annotate(
+            UserPreferences.objects.annotate(
                 settings_updated=JSONSet(
                     "settings", theme={"type": "dark", "background_color": "black"}
                 )
@@ -132,8 +134,8 @@ class JSONSetTests(TestCase):
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_nested_json(self):
-        user_preference = UserPreference.objects.create(settings={"theme": "dark"})
-        UserPreference.objects.update(
+        user_preferences = UserPreferences.objects.create(settings={"theme": "dark"})
+        UserPreferences.objects.update(
             settings=JSONSet(
                 "settings",
                 theme={
@@ -145,9 +147,9 @@ class JSONSetTests(TestCase):
                 },
             )
         )
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings,
+            user_preferences.settings,
             {
                 "theme": {
                     "type": "dark",
@@ -161,79 +163,79 @@ class JSONSetTests(TestCase):
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_list(self):
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={"rgb": [255, 255, 255], "notifications": True}
         )
-        UserPreference.objects.update(settings=JSONSet("settings", rgb=[0, 0, 0]))
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        UserPreferences.objects.update(settings=JSONSet("settings", rgb=[0, 0, 0]))
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings, {"rgb": [0, 0, 0], "notifications": True}
+            user_preferences.settings, {"rgb": [0, 0, 0], "notifications": True}
         )
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_list_using_index(self):
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={"rgb": [255, 255, 255], "notifications": True}
         )
-        UserPreference.objects.update(settings=JSONSet("settings", rgb__1=0))
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        UserPreferences.objects.update(settings=JSONSet("settings", rgb__1=0))
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings, {"rgb": [255, 0, 255], "notifications": True}
+            user_preferences.settings, {"rgb": [255, 0, 255], "notifications": True}
         )
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_json_null(self):
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={"theme": "dark", "notifications": True}
         )
-        UserPreference.objects.update(settings=JSONSet("settings", theme=None))
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        UserPreferences.objects.update(settings=JSONSet("settings", theme=None))
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings, {"theme": None, "notifications": True}
+            user_preferences.settings, {"theme": None, "notifications": True}
         )
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_single_key_with_nested_json_null(self):
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={"font": {"size": 20}, "notifications": True}
         )
-        UserPreference.objects.update(settings=JSONSet("settings", font__size=None))
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        UserPreferences.objects.update(settings=JSONSet("settings", font__size=None))
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings, {"font": {"size": None}, "notifications": True}
+            user_preferences.settings, {"font": {"size": None}, "notifications": True}
         )
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_using_instance(self):
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={"font": {"size": 20}, "notifications": True}
         )
-        user_preference.settings = JSONSet("settings", font__size=None)
-        user_preference.save()
+        user_preferences.settings = JSONSet("settings", font__size=None)
+        user_preferences.save()
 
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings, {"font": {"size": None}, "notifications": True}
+            user_preferences.settings, {"font": {"size": None}, "notifications": True}
         )
 
     def test_set_missing_key_value_returns_error(self):
         with self.assertRaisesMessage(
             TypeError, "JSONSet requires at least one key-value pair to be set"
         ):
-            UserPreference.objects.create(
+            UserPreferences.objects.create(
                 settings={"theme": "dark", "notifications": True}
             )
-            UserPreference.objects.update(settings=JSONSet("settings"))
+            UserPreferences.objects.update(settings=JSONSet("settings"))
 
     @skipUnlessDBFeature("supports_partial_json_update")
     def test_set_insert_new_key(self):
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={"theme": "dark", "notifications": True}
         )
-        UserPreference.objects.update(settings=JSONSet("settings", font="Arial"))
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        UserPreferences.objects.update(settings=JSONSet("settings", font="Arial"))
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings,
+            user_preferences.settings,
             {"theme": "dark", "notifications": True, "font": "Arial"},
         )
 
@@ -245,22 +247,22 @@ class JSONSetTests(TestCase):
                     return str(o)
                 return super().default(o)
 
-        user_preference = UserPreference.objects.create(
+        user_preferences = UserPreferences.objects.create(
             settings={
                 "theme": {"type": "dark", "opacity": decimal.Decimal(100.0)},
                 "notifications": True,
             }
         )
-        UserPreference.objects.update(
+        UserPreferences.objects.update(
             settings=JSONSet(
                 "settings",
                 output_field=JSONField(encoder=CustomJSONEncoder),
                 theme__opacity=decimal.Decimal(50.0),
             )
         )
-        user_preference = UserPreference.objects.get(pk=user_preference.pk)
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
-            user_preference.settings,
+            user_preferences.settings,
             {"theme": {"type": "dark", "opacity": "50"}, "notifications": True},
         )
 
@@ -269,7 +271,7 @@ class JSONSetTests(TestCase):
         with self.assertRaisesMessage(
             NotSupportedError, "JSONSet() is not supported on this database backend."
         ):
-            UserPreference.objects.create(
+            UserPreferences.objects.create(
                 settings={"theme": "dark", "notifications": True}
             )
-            UserPreference.objects.update(settings=JSONSet("settings", theme="light"))
+            UserPreferences.objects.update(settings=JSONSet("settings", theme="light"))

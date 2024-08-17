@@ -1990,7 +1990,7 @@ JSON-related functions
 
 We'll be using the following model in examples of each function::
 
-    class UserPreference(models.Model):
+    class UserPreferences(models.Model):
         settings = models.JSONField(encoder=DjangoJSONEncoder)
 
 ``JSONSet``
@@ -2007,13 +2007,13 @@ Usage example:
 .. code-block:: pycon
 
     >>> from django.db.models.functions import JSONSet
-    >>> user_preference = UserPreference.objects.create(
+    >>> user_preferences = UserPreferences.objects.create(
     ...     settings={"theme": "dark", "notifications": True}
     ... )
-    >>> UserPreference.objects.update(settings=JSONSet("settings", theme="light"))
+    >>> UserPreferences.objects.update(settings=JSONSet("settings", theme="light"))
     1
-    >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
-    >>> print(user_preference.settings)
+    >>> user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
+    >>> print(user_preferences.settings)
     {'theme': 'light', 'notifications': True}
 
 
@@ -2031,13 +2031,13 @@ Usage example:
 .. code-block:: pycon
 
     >>> from django.db.models.functions import JSONRemove
-    >>> user_preference = UserPreference.objects.create(
+    >>> user_preferences = UserPreferences.objects.create(
     ...     settings={"theme": "dark", "notifications": True}
     ... )
-    >>> UserPreference.objects.update(settings=JSONRemove("settings", "theme"))
+    >>> UserPreferences.objects.update(settings=JSONRemove("settings", "theme"))
     1
-    >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
-    >>> print(user_preference.settings)
+    >>> user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
+    >>> print(user_preferences.settings)
     {'notifications': True}
 
 For more information on how to use the JSONSet and JSONRemove functions, see

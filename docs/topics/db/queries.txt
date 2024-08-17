@@ -1472,7 +1472,8 @@ We can also use ``JSONRemove`` inside ``update()``.
     {'notifications': True}
 
 A more convenient method for updating a ``JSONField`` is to use key transforms
-within the ``update()`` method. For example:
+within the ``update()`` method. Consider following example to update ``JSONField``
+using key transforms.
 
 .. code-block:: pycon
 
@@ -1490,6 +1491,27 @@ within the ``update()`` method. For example:
     >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
     >>> print(user_preference.settings)
     {'theme': 'light', 'notifications': True, 'font': {'size': 20, 'name': 'Arial'}}
+
+To remove a key, you need to pass ``NOT_PROVIDED`` to parameter value. For
+example:
+
+.. code-block:: pycon
+
+    >>> from django.db.models import NOT_PROVIDED
+    >>> user_preference = UserPreference.objects.create(
+    ...     settings={
+    ...         "theme": "dark",
+    ...         "notifications": True,
+    ...         "font": {"size": 10, "name": "Arial"},
+    ...     }
+    ... )
+    >>> UserPreference.objects.update(
+    ...     settings__theme=NOT_PROVIDED,
+    ...     settings__font__size=20,
+    ... )
+    >>> user_preference = UserPreference.objects.get(pk=user_preference.pk)
+    >>> print(user_preference.settings)
+    {'notifications': True, 'font': {'size': 20, 'name': 'Arial'}}
 
 .. _complex-lookups-with-q:
 

@@ -265,6 +265,9 @@ Models
   longer required to be set on SQLite, which supports unlimited ``VARCHAR``
   columns.
 
+* Added ``JSONSet`` and ``JSONRemove`` for making partial updates and removing
+  keys in ``JSONField``.
+
 Requests and Responses
 ~~~~~~~~~~~~~~~~~~~~~~
 

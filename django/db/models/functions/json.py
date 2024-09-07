@@ -1,6 +1,6 @@
 from django.db import NotSupportedError
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.expressions import Func, Value, F
+from django.db.models.expressions import Func, Value
 from django.db.models.fields.json import compile_json_path
 from django.db.models.functions import Cast
 
@@ -12,6 +12,21 @@ class JSONSet(Func):
         self.fields = fields
 
         super().__init__(expression, output_field=output_field)
+
+    def resolve_expression(
+        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
+    ):
+        c = super().resolve_expression(query, allow_joins, reuse, summarize, for_save)
+        # Resolve expressions in the JSON update values.
+        c.fields = {
+            key: value.resolve_expression(
+                query, allow_joins, reuse, summarize, for_save
+            )
+            if hasattr(value, "resolve_expression")
+            else value
+            for key, value in self.fields.items()
+        }
+        return c
 
     def as_sql(
         self,
@@ -33,7 +48,7 @@ class JSONSet(Func):
             key_paths = key.split(LOOKUP_SEP)
             key_paths_join = compile_json_path(key_paths)
 
-            if False:
+            if not hasattr(value, "resolve_expression"):
                 # Use Value to serialize the data to string,
                 # then use Cast to ensure the string is treated as JSON.
                 value = Cast(

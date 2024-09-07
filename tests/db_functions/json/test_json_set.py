@@ -2,7 +2,8 @@ import decimal
 import json
 
 from django.db import NotSupportedError, connection
-from django.db.models import JSONField
+from django.db.models import F, JSONField, Value
+from django.db.models.functions import JSONObject
 from django.db.models.functions.json import JSONSet
 from django.test import TestCase, skipIfDBFeature, skipUnlessDBFeature
 
@@ -363,3 +364,29 @@ class JSONSetTests(TestCase):
                 settings={"theme": "dark", "notifications": True}
             )
             UserPreferences.objects.update(settings=JSONSet("settings", theme="light"))
+
+    @skipUnlessDBFeature("supports_partial_json_update")
+    def test_set_single_key_using_jsonobject(self):
+        user_preferences = UserPreferences.objects.create(
+            settings={"theme": "dark", "notifications": True}
+        )
+        UserPreferences.objects.update(
+            settings=JSONSet("settings", theme=JSONObject(color=Value("black")))
+        )
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
+        self.assertEqual(
+            user_preferences.settings,
+            {"theme": {"color": "black"}, "notifications": True},
+        )
+
+    @skipUnlessDBFeature("supports_partial_json_update")
+    def test_set_single_key_using_expressions(self):
+        user_preferences = UserPreferences.objects.create(
+            settings={"theme": "dark", "notifications": True}
+        )
+        UserPreferences.objects.update(settings=JSONSet("settings", id=F("id")))
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
+        self.assertEqual(
+            user_preferences.settings,
+            {"theme": "dark", "notifications": True, "id": 1},
+        )

@@ -1,6 +1,6 @@
 from django.db import NotSupportedError
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.expressions import Func, Value
+from django.db.models.expressions import Func, Value, F
 from django.db.models.fields.json import compile_json_path
 from django.db.models.functions import Cast
 
@@ -10,6 +10,7 @@ class JSONSet(Func):
         if not fields:
             raise TypeError("JSONSet requires at least one key-value pair to be set.")
         self.fields = fields
+
         super().__init__(expression, output_field=output_field)
 
     def as_sql(
@@ -31,17 +32,16 @@ class JSONSet(Func):
         for key, value in self.fields.items():
             key_paths = key.split(LOOKUP_SEP)
             key_paths_join = compile_json_path(key_paths)
-            new_source_expression.extend(
-                (
-                    Value(key_paths_join),
-                    # Use Value to serialize the data to string,
-                    # then use Cast to ensure the string is treated as JSON.
-                    Cast(
-                        Value(value, output_field=self.output_field),
-                        output_field=self.output_field,
-                    ),
+
+            if False:
+                # Use Value to serialize the data to string,
+                # then use Cast to ensure the string is treated as JSON.
+                value = Cast(
+                    Value(value, output_field=self.output_field),
+                    output_field=self.output_field,
                 )
-            )
+
+            new_source_expression.extend((Value(key_paths_join), value))
 
         copy.set_source_expressions(new_source_expression)
 

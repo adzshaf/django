@@ -28,6 +28,14 @@ class JSONSet(Func):
             )
             for key, value in self.fields.items()
         }
+
+        if for_save == "create":
+            # In the "create" case of an update_or_create(), we set the first
+            # source expression to an empty dictionary, since there is no
+            # existing JSON column to update.
+            source_expressions = c.get_source_expressions()
+            source_expressions[0] = Value({}, output_field=c.output_field)
+            c.set_source_expressions(source_expressions)
         return c
 
     def as_sql(
@@ -168,6 +176,20 @@ class JSONRemove(Func):
             raise TypeError("JSONRemove requires at least one path to remove")
         self.paths = paths
         super().__init__(expression)
+
+    def resolve_expression(
+        self, query=None, allow_joins=True, reuse=None, summarize=False, for_save=False
+    ):
+        c = super().resolve_expression(query, allow_joins, reuse, summarize, for_save)
+
+        if for_save == "create":
+            # In the "create" case of an update_or_create(), we set the first
+            # source expression to an empty dictionary, since there is no
+            # existing JSON column to update.
+            source_expressions = c.get_source_expressions()
+            source_expressions[0] = Value({}, output_field=c.output_field)
+            c.set_source_expressions(source_expressions)
+        return c
 
     def as_sql(
         self,

@@ -113,7 +113,10 @@ class UpdateQuery(Query):
                 continue
             if hasattr(val, "resolve_expression"):
                 # Resolve expressions here so that annotations are no longer needed
-                val = val.resolve_expression(self, allow_joins=False, for_save=True)
+                # HACK: Change for_save to strings "create" and "update" instead
+                # of True so we can distinguish between the two cases in an
+                # update_or_create() call.
+                val = val.resolve_expression(self, allow_joins=False, for_save="update")
             self.values.append((field, model, val))
 
     def add_related_update(self, model, field, value):

@@ -401,6 +401,19 @@ class JSONSetTests(TestCase):
             },
         )
 
+    def test_update_or_create_created(self):
+        updated_user_preferences, created = UserPreferences.objects.update_or_create(
+            defaults={"settings": JSONSet("settings", theme__color="white")},
+            id=9999,
+        )
+        self.assertIs(created, True)
+        updated_user_preferences.refresh_from_db()
+        self.assertEqual(updated_user_preferences.id, 9999)
+        self.assertEqual(
+            updated_user_preferences.settings,
+            {"theme": {"color": "white"}},
+        )
+
 
 class InvalidJSONSetTests(TestCase):
     @skipIfDBFeature("supports_partial_json_update")

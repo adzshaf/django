@@ -82,6 +82,19 @@ class JSONRemoveTests(TestCase):
             },
         )
 
+    def test_update_or_create_created(self):
+        updated_user_preferences, created = UserPreferences.objects.update_or_create(
+            defaults={"settings": JSONRemove("settings", "theme__color")},
+            id=9999,
+        )
+        self.assertIs(created, True)
+        updated_user_preferences.refresh_from_db()
+        self.assertEqual(updated_user_preferences.id, 9999)
+        self.assertEqual(
+            updated_user_preferences.settings,
+            {},
+        )
+
 
 class InvalidJSONRemoveTests(TestCase):
     @skipIfDBFeature("supports_partial_json_update")

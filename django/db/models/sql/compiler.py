@@ -1687,8 +1687,11 @@ class SQLInsertCompiler(SQLCompiler):
         expression and otherwise calling the field's get_db_prep_save().
         """
         if hasattr(value, "resolve_expression"):
+            # HACK: Change for_save to strings "create" and "update" instead of
+            # True so we can distinguish between the two cases in an
+            # update_or_create() call.
             value = value.resolve_expression(
-                self.query, allow_joins=False, for_save=True
+                self.query, allow_joins=False, for_save="create"
             )
             # Don't allow values containing Col expressions. They refer to
             # existing columns on a row, but in the case of insert the row
@@ -1953,8 +1956,11 @@ class SQLUpdateCompiler(SQLCompiler):
         values, update_params = [], []
         for field, model, val in self.query.values:
             if hasattr(val, "resolve_expression"):
+                # HACK: Change for_save to strings "create" and "update" instead
+                # of True so we can distinguish between the two cases in an
+                # update_or_create() call.
                 val = val.resolve_expression(
-                    self.query, allow_joins=False, for_save=True
+                    self.query, allow_joins=False, for_save="update"
                 )
                 if val.contains_aggregate:
                     raise FieldError(

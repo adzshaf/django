@@ -84,7 +84,7 @@ class JSONRemoveTests(TestCase):
 
     def test_update_or_create_created(self):
         updated_user_preferences, created = UserPreferences.objects.update_or_create(
-            defaults={"settings": JSONRemove("settings", "theme__color")},
+            defaults={"settings": JSONRemove("settings", "theme")},
             id=9999,
         )
         self.assertIs(created, True)

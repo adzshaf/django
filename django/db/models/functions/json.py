@@ -141,25 +141,23 @@ class JSONSet(Func):
 
         new_source_expressions = copy.get_source_expressions()
 
+        key_paths = key.split(LOOKUP_SEP)
+        key_paths_join = compile_json_path(key_paths)
+
         if not hasattr(value, "resolve_expression"):
             # We do not need Cast() because Oracle has the FORMAT JSON clause
             # in JSON_TRANSFORM that will automatically treat the value as JSON.
             value = Value(value, output_field=self.output_field)
+            class ArgJoiner:
+                def join(self, args):
+                    return f"{args[0]}, SET '{key_paths_join}' = {args[-1]} FORMAT JSON"
+        else:
+            class ArgJoiner:
+                def join(self, args):
+                    return f"{args[0]}, SET '{key_paths_join}' = {args[-1]}"
 
         new_source_expressions.append(value)
         copy.set_source_expressions(new_source_expressions)
-
-        key_paths = key.split(LOOKUP_SEP)
-        key_paths_join = compile_json_path(key_paths)
-
-        class ArgJoiner:
-            def join(self, args):
-                if not hasattr(value, "resolve_expression"):
-                    # Interpolate the JSON path directly to the query string, because
-                    # Oracle does not support passing the JSON path using parameter
-                    # binding.
-                    return f"{args[0]}, SET '{key_paths_join}' = {args[-1]} FORMAT JSON"
-                return f"{args[0]}, SET '{key_paths_join}' = {args[-1]}"
 
         return super(JSONSet, copy).as_sql(
             compiler,

@@ -22,6 +22,16 @@ class JSONSetTests(TestCase):
             user_preferences.settings, {"theme": "light", "notifications": True}
         )
 
+    def test_nested_key_using_missing_path(self):
+        user_preferences = UserPreferences.objects.create(
+            settings={}
+        )
+        UserPreferences.objects.update(settings=JSONSet("settings", theme__color="light"))
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
+        self.assertEqual(
+            user_preferences.settings, {"theme": {"color": "light"}}
+        )
+
     def test_set_multiple_keys(self):
         user_preferences = UserPreferences.objects.create(
             settings={
@@ -281,6 +291,19 @@ class JSONSetTests(TestCase):
                 },
             )
 
+    def test_set_using_index_on_non_list(self):
+        user_preferences = UserPreferences.objects.create(
+            settings={"colors": "yellow", "notifications": True}
+        )
+        UserPreferences.objects.update(
+            settings=JSONSet("settings", colors__1="green")
+        )
+        user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
+        self.assertEqual(
+            user_preferences.settings,
+            {"colors": ["yellow", "green"], "notifications": True},
+        )
+
     def test_set_single_key_with_json_null(self):
         user_preferences = UserPreferences.objects.create(
             settings={"theme": "dark", "notifications": True}
@@ -403,7 +426,7 @@ class JSONSetTests(TestCase):
 
     def test_update_or_create_created(self):
         updated_user_preferences, created = UserPreferences.objects.update_or_create(
-            defaults={"settings": JSONSet("settings", theme__color="white")},
+            defaults={"settings": JSONSet("settings", theme="dark")},
             id=9999,
         )
         self.assertIs(created, True)
@@ -411,7 +434,7 @@ class JSONSetTests(TestCase):
         self.assertEqual(updated_user_preferences.id, 9999)
         self.assertEqual(
             updated_user_preferences.settings,
-            {"theme": {"color": "white"}},
+            {"theme": "dark"},
         )
 
 

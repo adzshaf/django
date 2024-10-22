@@ -148,10 +148,13 @@ class JSONSet(Func):
             # We do not need Cast() because Oracle has the FORMAT JSON clause
             # in JSON_TRANSFORM that will automatically treat the value as JSON.
             value = Value(value, output_field=self.output_field)
+
             class ArgJoiner:
                 def join(self, args):
                     return f"{args[0]}, SET '{key_paths_join}' = {args[-1]} FORMAT JSON"
+
         else:
+
             class ArgJoiner:
                 def join(self, args):
                     return f"{args[0]}, SET '{key_paths_join}' = {args[-1]}"

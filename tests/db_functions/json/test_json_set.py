@@ -23,14 +23,12 @@ class JSONSetTests(TestCase):
         )
 
     def test_nested_key_using_missing_path(self):
-        user_preferences = UserPreferences.objects.create(
-            settings={}
+        user_preferences = UserPreferences.objects.create(settings={})
+        UserPreferences.objects.update(
+            settings=JSONSet("settings", theme__color="light")
         )
-        UserPreferences.objects.update(settings=JSONSet("settings", theme__color="light"))
         user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
-        self.assertEqual(
-            user_preferences.settings, {"theme": {"color": "light"}}
-        )
+        self.assertEqual(user_preferences.settings, {"theme": {"color": "light"}})
 
     def test_set_multiple_keys(self):
         user_preferences = UserPreferences.objects.create(
@@ -295,9 +293,7 @@ class JSONSetTests(TestCase):
         user_preferences = UserPreferences.objects.create(
             settings={"colors": "yellow", "notifications": True}
         )
-        UserPreferences.objects.update(
-            settings=JSONSet("settings", colors__1="green")
-        )
+        UserPreferences.objects.update(settings=JSONSet("settings", colors__1="green"))
         user_preferences = UserPreferences.objects.get(pk=user_preferences.pk)
         self.assertEqual(
             user_preferences.settings,
